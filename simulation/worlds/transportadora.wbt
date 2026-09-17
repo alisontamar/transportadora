@@ -1,0 +1,85 @@
+#VRML_SIM R2025a utf8
+
+# Vistazo inicial de la simulación 3D en Webots: solo la banda transportadora
+# con productos circulando encima. Es el punto de partida de la integración
+# descrita en el README (simulation/webots_interface.py); todavía no incluye
+# sensores, desviador ni la lógica de clasificación/control del resto del
+# proyecto.
+
+EXTERNPROTO "webots://projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "webots://projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "webots://projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "webots://projects/objects/factory/conveyors/protos/ConveyorBelt.proto"
+EXTERNPROTO "webots://projects/objects/factory/containers/protos/PlasticCrate.proto"
+
+WorldInfo {
+  info [
+    "Sistema de Clasificación de Productos - vistazo inicial en Webots."
+    "Banda transportadora con productos (cajas de colores) circulando encima."
+  ]
+  title "Transportadora - vistazo 3D"
+  basicTimeStep 16
+}
+Viewpoint {
+  orientation -0.20 0.94 0.28 1.05
+  position -0.55 -2.6 1.75
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 3.2 1.4
+  floorTileSize 0.4 0.4
+  wallHeight 0.05
+}
+
+ConveyorBelt {
+  translation 0 0 0
+  name "banda transportadora"
+  size 2.4 0.5 0.3
+  speed 0.25
+  timer 0
+}
+
+DEF PRODUCT_1 PlasticCrate {
+  translation -1.0 0 0.37
+  name "producto_1"
+  size 0.14 0.14 0.14
+  color 0.85 0.15 0.15
+  mass 0.2
+}
+DEF PRODUCT_2 PlasticCrate {
+  translation -0.5 0.05 0.37
+  name "producto_2"
+  size 0.14 0.14 0.14
+  color 0.15 0.75 0.25
+  mass 0.2
+}
+DEF PRODUCT_3 PlasticCrate {
+  translation 0 -0.05 0.37
+  name "producto_3"
+  size 0.14 0.14 0.14
+  color 0.2 0.35 0.9
+  mass 0.2
+}
+DEF PRODUCT_4 PlasticCrate {
+  translation 0.5 0.05 0.37
+  name "producto_4"
+  size 0.14 0.14 0.14
+  color 0.85 0.15 0.15
+  mass 0.2
+}
+DEF PRODUCT_5 PlasticCrate {
+  translation 1.0 -0.05 0.37
+  name "producto_5"
+  size 0.14 0.14 0.14
+  color 0.15 0.75 0.25
+  mass 0.2
+}
+
+Robot {
+  name "controlador de ciclo"
+  controller "loop_products"
+  supervisor TRUE
+}
