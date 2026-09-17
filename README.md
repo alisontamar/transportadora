@@ -48,6 +48,10 @@ transportadora/
 │   └── __init__.py
 ├── simulation/            # Integración con Webots (simulación 3D)
 │   ├── webots_interface.py    # Puente con el mundo de Webots (pendiente)
+│   ├── worlds/
+│   │   └── transportadora.wbt # Vistazo 3D: banda + productos circulando
+│   ├── controllers/
+│   │   └── loop_products/     # Hace circular los productos sobre la banda
 │   └── __init__.py
 ├── tests/                 # Pruebas unitarias
 │   └── __init__.py
@@ -74,7 +78,21 @@ cámara. Aún no implementado.
 
 Contendrá la interfaz de integración con **Webots** para la simulación 3D de
 la banda transportadora, sus sensores (presencia, verificación) y
-actuadores (motor, servomotor del desviador). Aún no implementado.
+actuadores (motor, servomotor del desviador). `webots_interface.py` (el
+puente con `control/` y `vision/`) todavía está pendiente.
+
+Como primer vistazo del entorno 3D ya existe `worlds/transportadora.wbt`:
+solo la banda (`ConveyorBelt`) con unas cajas de colores circulando encima
+(un controlador `Supervisor` en `controllers/loop_products/` las reubica al
+inicio cuando llegan al final, para simular el ciclo). No incluye todavía
+sensores, desviador, ni la lógica de clasificación/control del resto del
+proyecto — es solo la maqueta visual de la que partirá la integración.
+
+Para abrirlo:
+
+1. Instalar [Webots](https://cyberbotics.com/) (probado con R2025a).
+2. Abrir `simulation/worlds/transportadora.wbt` desde Webots.
+3. Iniciar la simulación (▶) para ver los productos circulando sobre la banda.
 
 ### `tests/`
 
@@ -86,7 +104,10 @@ Pruebas unitarias para los distintos módulos del proyecto.
 - [x] Módulo de control (`control/transfer_function.py`) funcional: define
       T(s), calcula polos/ceros y grafica la respuesta al escalón.
 - [ ] Módulo de visión artificial (clasificación A/B/C).
-- [ ] Integración con Webots.
+- [x] Vistazo 3D en Webots: banda transportadora con productos circulando
+      (`simulation/worlds/transportadora.wbt`), sin sensores/desviador aún.
+- [ ] Integración completa con Webots (`webots_interface.py`, sensores,
+      desviador, señal verde/roja).
 - [ ] Lazo de verificación y señal verde/roja.
 
 ## Uso
