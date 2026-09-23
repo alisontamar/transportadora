@@ -1,13 +1,19 @@
-"""Función de transferencia de lazo cerrado para el control de velocidad
-de la banda transportadora (motor + encoder, controlador PI).
+"""Función de transferencia en lazo abierto para la banda transportadora
+(motor + encoder, SIN controlador PID/PI).
 
-    T(s) = Km*(Kp*s + Ki) / (tau_m*s^2 + (1 + Km*Kp*Ke)*s + Km*Ki*Ke)
+    T(s) = Km / (tau_m*s + 1)
 
 Donde:
     Km    : ganancia del motor
-    Ke    : ganancia del encoder (realimentación)
     tau_m : constante de tiempo del motor
-    Kp,Ki : ganancias proporcional e integral del controlador PI
+
+Por indicación del docente, en esta etapa no se incluye el controlador
+PID/PI: un controlador cierra el lazo y corrige el error de velocidad,
+por lo que "esconde" la dinámica real del motor y hace que el sistema
+responda de forma casi perfecta. Sin controlador, la banda responde con
+su dinámica natural (primer orden): alcanza la velocidad de forma más
+lenta y con el error de estado estacionario propio de un sistema en lazo
+abierto, sin corrección.
 
 Este script arma la función de transferencia con scipy.signal, calcula
 sus polos y ceros, y grafica la respuesta al escalón.
@@ -24,16 +30,13 @@ from scipy import signal
 
 # --- Parámetros del sistema (valores iniciales de referencia) ---
 Km = 2.5      # ganancia del motor
-Ke = 1.0      # ganancia del encoder
 tau_m = 0.5   # constante de tiempo del motor [s]
-Kp = 1.2      # ganancia proporcional del PI
-Ki = 3.0      # ganancia integral del PI
 
 
-def build_transfer_function(Km=Km, Ke=Ke, tau_m=tau_m, Kp=Kp, Ki=Ki):
-    """Construye T(s) = Km*(Kp*s + Ki) / (tau_m*s^2 + (1 + Km*Kp*Ke)*s + Km*Ki*Ke)."""
-    num = [Km * Kp, Km * Ki]
-    den = [tau_m, 1 + Km * Kp * Ke, Km * Ki * Ke]
+def build_transfer_function(Km=Km, tau_m=tau_m):
+    """Construye T(s) = Km / (tau_m*s + 1), la planta motor sin controlador."""
+    num = [Km]
+    den = [tau_m, 1]
     return signal.TransferFunction(num, den)
 
 
@@ -59,7 +62,7 @@ def plot_pole_zero_map(sys):
         )
     plt.axhline(0, color="black", linewidth=0.5)
     plt.axvline(0, color="black", linewidth=0.5)
-    plt.title("Mapa de polos y ceros - T(s)")
+    plt.title("Mapa de polos y ceros - T(s) sin controlador")
     plt.xlabel("Re")
     plt.ylabel("Im")
     plt.legend()
@@ -75,7 +78,7 @@ def plot_step_response(sys, t_final=5.0):
 
     plt.figure()
     plt.plot(t_out, y_out)
-    plt.title("Respuesta al escalón - Control de velocidad de la banda")
+    plt.title("Respuesta al escalón - Banda sin controlador (lazo abierto)")
     plt.xlabel("Tiempo [s]")
     plt.ylabel("Velocidad normalizada")
     plt.grid(True)
@@ -85,7 +88,7 @@ def plot_step_response(sys, t_final=5.0):
 
 def main():
     sys = build_transfer_function()
-    print("Función de transferencia T(s):")
+    print("Función de transferencia T(s) (sin controlador PID/PI):")
     print(sys)
 
     analyze_poles_zeros(sys)
