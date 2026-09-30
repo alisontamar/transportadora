@@ -1,81 +1,452 @@
 #VRML_SIM R2025a utf8
 
-# Vistazo inicial de la simulación 3D en Webots: solo la banda transportadora
-# con productos circulando encima. Es el punto de partida de la integración
-# descrita en el README (simulation/webots_interface.py); todavía no incluye
-# sensores, desviador ni la lógica de clasificación/control del resto del
-# proyecto.
-
-EXTERNPROTO "webots://projects/objects/backgrounds/protos/TexturedBackground.proto"
-EXTERNPROTO "webots://projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
-EXTERNPROTO "webots://projects/objects/floors/protos/RectangleArena.proto"
-EXTERNPROTO "webots://projects/objects/factory/conveyors/protos/ConveyorBelt.proto"
-EXTERNPROTO "webots://projects/objects/factory/containers/protos/PlasticCrate.proto"
+# Simulación 3D en Webots del sistema completo (etapa SIN PID/PI): banda +
+# motor + encoder, sensor de presencia, cámara, desviador, 3 compartimentos
+# (A/B/C) y sensor de verificación con señal verde/roja. La animación la
+# maneja controllers/loop_products/loop_products.py.
+#
+# Nota: este mundo usa solo nodos nativos de Webots (Solid/Shape/Box/Plane/
+# Background/luces), sin EXTERNPROTO de la librería estándar (ConveyorBelt,
+# PlasticCrate, RectangleArena, TexturedBackground...). Esos PROTO se
+# descargan de internet la primera vez que se usan, y en este equipo esa
+# descarga estaba fallando (ver preferencias de red de Webots), dejando la
+# escena vacía. Con nodos nativos el mundo abre igual con o sin internet.
 
 WorldInfo {
   info [
     "Sistema de Clasificación de Productos - vistazo inicial en Webots."
-    "Banda transportadora con productos (cajas de colores) circulando encima."
+    "Banda + motor/encoder + sensor + cámara + desviador + compartimentos A/B/C + señal verde/roja."
   ]
   title "Transportadora - vistazo 3D"
   basicTimeStep 16
 }
 Viewpoint {
-  orientation -0.20 0.94 0.28 1.05
-  position -0.55 -2.6 1.75
+  orientation -0.2837 0.2837 0.9160 1.6584
+  position 0.25 -2.7 2.0
 }
-TexturedBackground {
+Background {
+  skyColor [
+    0.6 0.65 0.7
+  ]
 }
-TexturedBackgroundLight {
+DirectionalLight {
+  direction 0.4 0.4 -1
+  intensity 1.5
+  castShadows TRUE
 }
-RectangleArena {
-  floorSize 3.2 1.4
-  floorTileSize 0.4 0.4
-  wallHeight 0.05
+PointLight {
+  location 0 0 1.5
+  intensity 2
 }
 
-ConveyorBelt {
+Solid {
   translation 0 0 0
-  name "banda transportadora"
-  size 2.4 0.5 0.3
-  speed 0.25
-  timer 0
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.8 0.8 0.8
+        roughness 1
+        metalness 0
+      }
+      geometry Plane {
+        size 4.6 2.2
+      }
+    }
+  ]
+  name "piso"
 }
 
-DEF PRODUCT_1 PlasticCrate {
+Solid {
+  translation 0 0 0.15
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.25 0.25 0.25
+        roughness 0.8
+        metalness 0.1
+      }
+      geometry Box {
+        size 2.4 0.5 0.3
+      }
+    }
+  ]
+  name "banda transportadora"
+}
+
+DEF ROLLER_L Solid {
+  translation -1.2 0 0.15
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.6 0.6 0.65 roughness 0.4 metalness 0.6 }
+      geometry Cylinder { height 0.52 radius 0.15 }
+    }
+    Transform { translation 0.14 0 0 children [ Shape { appearance PBRAppearance { baseColor 1 1 1 } geometry Box { size 0.03 0.53 0.03 } } ] }
+  ]
+  name "rodillo_izq"
+}
+DEF ROLLER_R Solid {
+  translation 1.2 0 0.15
+  children [
+    Shape {
+      appearance PBRAppearance { baseColor 0.6 0.6 0.65 roughness 0.4 metalness 0.6 }
+      geometry Cylinder { height 0.52 radius 0.15 }
+    }
+    Transform { translation 0.14 0 0 children [ Shape { appearance PBRAppearance { baseColor 1 1 1 } geometry Box { size 0.03 0.53 0.03 } } ] }
+  ]
+  name "rodillo_der"
+}
+Solid {
+  translation -1.0 -0.22 0.07
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.15 0.15 0.15 roughness 0.7 metalness 0.1 } geometry Box { size 0.06 0.06 0.14 } } ]
+  name "pata_-1.0_-0.22"
+}
+Solid {
+  translation -1.0 0.22 0.07
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.15 0.15 0.15 roughness 0.7 metalness 0.1 } geometry Box { size 0.06 0.06 0.14 } } ]
+  name "pata_-1.0_0.22"
+}
+Solid {
+  translation 1.0 -0.22 0.07
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.15 0.15 0.15 roughness 0.7 metalness 0.1 } geometry Box { size 0.06 0.06 0.14 } } ]
+  name "pata_1.0_-0.22"
+}
+Solid {
+  translation 1.0 0.22 0.07
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.15 0.15 0.15 roughness 0.7 metalness 0.1 } geometry Box { size 0.06 0.06 0.14 } } ]
+  name "pata_1.0_0.22"
+}
+Solid {
+  translation -1.2 -0.42 0.15
+  children [ Shape { appearance PBRAppearance { baseColor 0.1 0.3 0.7 roughness 0.4 metalness 0.5 } geometry Cylinder { height 0.24 radius 0.1 } } ]
+  name "motor"
+}
+Solid {
+  translation -1.2 -0.30 0.15
+  children [ Shape { appearance PBRAppearance { baseColor 0.8 0.8 0.8 metalness 0.8 roughness 0.3 } geometry Cylinder { height 0.1 radius 0.025 } } ]
+  name "eje_motor"
+}
+DEF ENCODER Solid {
+  translation -1.2 -0.58 0.15
+  children [
+    Shape { appearance PBRAppearance { baseColor 0.05 0.05 0.05 } geometry Cylinder { height 0.03 radius 0.075 } }
+    Transform { translation 0.05 0 0 children [ Shape { appearance PBRAppearance { baseColor 1 0.9 0 emissiveColor 0.6 0.5 0 } geometry Box { size 0.03 0.04 0.03 } } ] }
+    Transform { translation -0.05 0 0 children [ Shape { appearance PBRAppearance { baseColor 1 0.9 0 emissiveColor 0.6 0.5 0 } geometry Box { size 0.03 0.04 0.03 } } ] }
+  ]
+  name "encoder"
+}
+Solid {
+  translation -0.3 -0.33 0.4
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.3 0.3 0.35 roughness 0.7 metalness 0.1 } geometry Box { size 0.05 0.05 0.8 } } ]
+  name "portico_poste_izq"
+}
+Solid {
+  translation -0.3 0.33 0.4
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.3 0.3 0.35 roughness 0.7 metalness 0.1 } geometry Box { size 0.05 0.05 0.8 } } ]
+  name "portico_poste_der"
+}
+Solid {
+  translation -0.3 0 0.8
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.3 0.3 0.35 roughness 0.7 metalness 0.1 } geometry Box { size 0.06 0.72 0.05 } } ]
+  name "portico_viga"
+}
+Solid {
+  translation -0.3 0 0.68
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.05 0.05 0.05 roughness 0.7 metalness 0.1 } geometry Box { size 0.10 0.08 0.10 } } ]
+  name "camara"
+}
+Solid {
+  translation -0.3 0 0.61
+  children [
+    Shape { appearance PBRAppearance { baseColor 0.1 0.1 0.2 metalness 0.8 roughness 0.1 } geometry Cylinder { height 0.04 radius 0.03 } }
+  ]
+  rotation 1 0 0 1.5708
+  name "lente_camara"
+}
+Solid {
+  translation -0.355 0 0.70
+  
+  children [ Shape { appearance DEF CAMERA_LED_MAT PBRAppearance { baseColor 0 0 0 roughness 0.7 metalness 0.1 emissiveColor 0 0 0 } geometry Box { size 0.01 0.02 0.02 } } ]
+  name "camara_led"
+}
+Solid {
+  translation -0.3 -0.30 0.38
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.9 0.6 0.1 roughness 0.7 metalness 0.1 } geometry Box { size 0.05 0.05 0.05 } } ]
+  name "sensor_presencia_emisor"
+}
+Solid {
+  translation -0.3 0.30 0.38
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.9 0.6 0.1 roughness 0.7 metalness 0.1 } geometry Box { size 0.05 0.05 0.05 } } ]
+  name "sensor_presencia_receptor"
+}
+Solid {
+  translation -0.32999999999999996 -0.30 0.42
+  
+  children [ Shape { appearance DEF SENSOR_LED_MAT PBRAppearance { baseColor 0 0 0 roughness 0.7 metalness 0.1 emissiveColor 0 0 0 } geometry Box { size 0.02 0.02 0.02 } } ]
+  name "sensor_presencia_led"
+}
+DEF BEAM Solid {
+  translation -0.3 0 0.38
+  children [ Shape { appearance PBRAppearance { baseColor 1 0 0 emissiveColor 1 0 0 transparency 0.6 } geometry Box { size 0.005 0.55 0.005 } } ]
+  name "haz_sensor"
+}
+Solid {
+  translation 0.5 0 0.33
+  children [ Shape { appearance PBRAppearance { baseColor 0.9 0.8 0.1 metalness 0.5 } geometry Cylinder { height 0.14 radius 0.04 } } ]
+  rotation 1 0 0 1.5708
+  name "desviador_pivote"
+}
+DEF BLADE Solid {
+  translation 0.5 0 0.4
+  rotation 0 0 1 0
+  children [ Transform { translation 0.25 0 0 children [ Shape { appearance PBRAppearance { baseColor 0.9 0.8 0.1 roughness 0.5 metalness 0.3 } geometry Box { size 0.5 0.02 0.14 } } ] } ]
+  name "desviador"
+}
+Solid {
+  translation 1.6 0.0 0.01
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.85 0.15 0.15 roughness 0.7 metalness 0.1 } geometry Box { size 0.42 0.36 0.02 } } ]
+  name "compartimento_A_piso"
+}
+Solid {
+  translation 1.6 0.18 0.1
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.55 0.55 0.6 roughness 0.9 metalness 0.1 } geometry Box { size 0.42 0.02 0.2 } } ]
+  name "compartimento_A_pared_n"
+}
+Solid {
+  translation 1.6 -0.18 0.1
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.55 0.55 0.6 roughness 0.9 metalness 0.1 } geometry Box { size 0.42 0.02 0.2 } } ]
+  name "compartimento_A_pared_s"
+}
+Solid {
+  translation 1.81 0.0 0.1
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.55 0.55 0.6 roughness 0.9 metalness 0.1 } geometry Box { size 0.02 0.36 0.2 } } ]
+  name "compartimento_A_pared_e"
+}
+Solid {
+  translation 1.3900000000000001 0.0 0.1
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.55 0.55 0.6 roughness 0.9 metalness 0.1 } geometry Box { size 0.02 0.36 0.2 } } ]
+  name "compartimento_A_pared_w"
+}
+Solid {
+  translation 1.9100000000000001 0.0 0.2
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.2 0.2 0.2 roughness 0.7 metalness 0.1 } geometry Box { size 0.03 0.03 0.4 } } ]
+  name "torre_A"
+}
+Solid {
+  translation 1.6 0.0 0.23
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.9 0.6 0.1 roughness 0.7 metalness 0.1 } geometry Box { size 0.06 0.06 0.03 } } ]
+  name "sensor_verificacion_A"
+}
+DEF LAMP_A_G Solid {
+  translation 1.9100000000000001 0.0 0.46
+  children [ Shape { appearance DEF LAMP_A_G_MAT PBRAppearance { baseColor 0 0.3 0 emissiveColor 0 0 0 } geometry Sphere { radius 0.04 } } ]
+  name "lampara_verde_A"
+}
+DEF LAMP_A_R Solid {
+  translation 1.9100000000000001 0.0 0.38
+  children [ Shape { appearance DEF LAMP_A_R_MAT PBRAppearance { baseColor 0.3 0 0 emissiveColor 0 0 0 } geometry Sphere { radius 0.04 } } ]
+  name "lampara_roja_A"
+}
+Solid {
+  translation 0.8 0.55 0.01
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.15 0.75 0.25 roughness 0.7 metalness 0.1 } geometry Box { size 0.42 0.36 0.02 } } ]
+  name "compartimento_B_piso"
+}
+Solid {
+  translation 0.8 0.73 0.1
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.55 0.55 0.6 roughness 0.9 metalness 0.1 } geometry Box { size 0.42 0.02 0.2 } } ]
+  name "compartimento_B_pared_n"
+}
+Solid {
+  translation 0.8 0.37000000000000005 0.1
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.55 0.55 0.6 roughness 0.9 metalness 0.1 } geometry Box { size 0.42 0.02 0.2 } } ]
+  name "compartimento_B_pared_s"
+}
+Solid {
+  translation 1.01 0.55 0.1
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.55 0.55 0.6 roughness 0.9 metalness 0.1 } geometry Box { size 0.02 0.36 0.2 } } ]
+  name "compartimento_B_pared_e"
+}
+Solid {
+  translation 0.5900000000000001 0.55 0.1
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.55 0.55 0.6 roughness 0.9 metalness 0.1 } geometry Box { size 0.02 0.36 0.2 } } ]
+  name "compartimento_B_pared_w"
+}
+Solid {
+  translation 1.11 0.55 0.2
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.2 0.2 0.2 roughness 0.7 metalness 0.1 } geometry Box { size 0.03 0.03 0.4 } } ]
+  name "torre_B"
+}
+Solid {
+  translation 0.8 0.55 0.23
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.9 0.6 0.1 roughness 0.7 metalness 0.1 } geometry Box { size 0.06 0.06 0.03 } } ]
+  name "sensor_verificacion_B"
+}
+DEF LAMP_B_G Solid {
+  translation 1.11 0.55 0.46
+  children [ Shape { appearance DEF LAMP_B_G_MAT PBRAppearance { baseColor 0 0.3 0 emissiveColor 0 0 0 } geometry Sphere { radius 0.04 } } ]
+  name "lampara_verde_B"
+}
+DEF LAMP_B_R Solid {
+  translation 1.11 0.55 0.38
+  children [ Shape { appearance DEF LAMP_B_R_MAT PBRAppearance { baseColor 0.3 0 0 emissiveColor 0 0 0 } geometry Sphere { radius 0.04 } } ]
+  name "lampara_roja_B"
+}
+Solid {
+  translation 0.8 -0.55 0.01
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.2 0.35 0.9 roughness 0.7 metalness 0.1 } geometry Box { size 0.42 0.36 0.02 } } ]
+  name "compartimento_C_piso"
+}
+Solid {
+  translation 0.8 -0.37000000000000005 0.1
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.55 0.55 0.6 roughness 0.9 metalness 0.1 } geometry Box { size 0.42 0.02 0.2 } } ]
+  name "compartimento_C_pared_n"
+}
+Solid {
+  translation 0.8 -0.73 0.1
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.55 0.55 0.6 roughness 0.9 metalness 0.1 } geometry Box { size 0.42 0.02 0.2 } } ]
+  name "compartimento_C_pared_s"
+}
+Solid {
+  translation 1.01 -0.55 0.1
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.55 0.55 0.6 roughness 0.9 metalness 0.1 } geometry Box { size 0.02 0.36 0.2 } } ]
+  name "compartimento_C_pared_e"
+}
+Solid {
+  translation 0.5900000000000001 -0.55 0.1
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.55 0.55 0.6 roughness 0.9 metalness 0.1 } geometry Box { size 0.02 0.36 0.2 } } ]
+  name "compartimento_C_pared_w"
+}
+Solid {
+  translation 1.11 -0.55 0.2
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.2 0.2 0.2 roughness 0.7 metalness 0.1 } geometry Box { size 0.03 0.03 0.4 } } ]
+  name "torre_C"
+}
+Solid {
+  translation 0.8 -0.55 0.23
+  
+  children [ Shape { appearance PBRAppearance { baseColor 0.9 0.6 0.1 roughness 0.7 metalness 0.1 } geometry Box { size 0.06 0.06 0.03 } } ]
+  name "sensor_verificacion_C"
+}
+DEF LAMP_C_G Solid {
+  translation 1.11 -0.55 0.46
+  children [ Shape { appearance DEF LAMP_C_G_MAT PBRAppearance { baseColor 0 0.3 0 emissiveColor 0 0 0 } geometry Sphere { radius 0.04 } } ]
+  name "lampara_verde_C"
+}
+DEF LAMP_C_R Solid {
+  translation 1.11 -0.55 0.38
+  children [ Shape { appearance DEF LAMP_C_R_MAT PBRAppearance { baseColor 0.3 0 0 emissiveColor 0 0 0 } geometry Sphere { radius 0.04 } } ]
+  name "lampara_roja_C"
+}
+
+DEF PRODUCT_1 Solid {
   translation -1.0 0 0.37
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.85 0.15 0.15
+        roughness 0.6
+        metalness 0
+      }
+      geometry Box {
+        size 0.14 0.14 0.14
+      }
+    }
+  ]
   name "producto_1"
-  size 0.14 0.14 0.14
-  color 0.85 0.15 0.15
-  mass 0.2
 }
-DEF PRODUCT_2 PlasticCrate {
+DEF PRODUCT_2 Solid {
   translation -0.5 0.05 0.37
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.15 0.75 0.25
+        roughness 0.6
+        metalness 0
+      }
+      geometry Box {
+        size 0.14 0.14 0.14
+      }
+    }
+  ]
   name "producto_2"
-  size 0.14 0.14 0.14
-  color 0.15 0.75 0.25
-  mass 0.2
 }
-DEF PRODUCT_3 PlasticCrate {
+DEF PRODUCT_3 Solid {
   translation 0 -0.05 0.37
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.2 0.35 0.9
+        roughness 0.6
+        metalness 0
+      }
+      geometry Box {
+        size 0.14 0.14 0.14
+      }
+    }
+  ]
   name "producto_3"
-  size 0.14 0.14 0.14
-  color 0.2 0.35 0.9
-  mass 0.2
 }
-DEF PRODUCT_4 PlasticCrate {
+DEF PRODUCT_4 Solid {
   translation 0.5 0.05 0.37
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.85 0.15 0.15
+        roughness 0.6
+        metalness 0
+      }
+      geometry Box {
+        size 0.14 0.14 0.14
+      }
+    }
+  ]
   name "producto_4"
-  size 0.14 0.14 0.14
-  color 0.85 0.15 0.15
-  mass 0.2
 }
-DEF PRODUCT_5 PlasticCrate {
+DEF PRODUCT_5 Solid {
   translation 1.0 -0.05 0.37
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.15 0.75 0.25
+        roughness 0.6
+        metalness 0
+      }
+      geometry Box {
+        size 0.14 0.14 0.14
+      }
+    }
+  ]
   name "producto_5"
-  size 0.14 0.14 0.14
-  color 0.15 0.75 0.25
-  mass 0.2
 }
 
 Robot {

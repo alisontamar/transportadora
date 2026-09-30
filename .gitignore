@@ -34,3 +34,5 @@ outputs/
 
 # Webots
 *.wbproj
+
+node_modules/

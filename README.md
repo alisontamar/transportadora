@@ -51,9 +51,9 @@ transportadora/
 ├── simulation/            # Integración con Webots (simulación 3D)
 │   ├── webots_interface.py    # Puente con el mundo de Webots (pendiente)
 │   ├── worlds/
-│   │   └── transportadora.wbt # Vistazo 3D: banda + productos circulando
+│   │   └── transportadora.wbt # Mundo 3D: banda, motor/encoder, sensor, cámara, desviador, compartimentos A/B/C, señal verde/roja
 │   ├── controllers/
-│   │   └── loop_products/     # Hace circular los productos sobre la banda
+│   │   └── loop_products/     # Anima el sistema completo (sin PID/PI) con la T(s) del motor
 │   └── __init__.py
 ├── tests/                 # Pruebas unitarias
 │   └── __init__.py
@@ -78,7 +78,7 @@ partida antes de cerrar el lazo.
 
 ## Etapa actual: sistema sin controlador PID/PI
 
-Por indicación del docente, en esta etapa del proyecto **no se implementa el
+En esta etapa del proyecto **no se implementa el
 controlador PID/PI**. El objetivo es ver primero cómo se comporta la banda
 "cruda" (solo motor + encoder), antes de agregar un controlador que corrija
 ese comportamiento y lo vuelva casi perfecto.

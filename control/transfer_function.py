@@ -7,7 +7,7 @@ Donde:
     Km    : ganancia del motor
     tau_m : constante de tiempo del motor
 
-Por indicación del docente, en esta etapa no se incluye el controlador
+en esta etapa no se incluye el controlador
 PID/PI: un controlador cierra el lazo y corrige el error de velocidad,
 por lo que "esconde" la dinámica real del motor y hace que el sistema
 responda de forma casi perfecta. Sin controlador, la banda responde con
@@ -29,14 +29,13 @@ import numpy as np
 from scipy import signal
 
 # --- Parámetros del sistema (valores iniciales de referencia) ---
-Km = 2.5      # ganancia del motor
-tau_m = 0.5   # constante de tiempo del motor [s]
+Km = 18    
+tau_m = 0.1
 
 
 def build_transfer_function(Km=Km, tau_m=tau_m):
-    """Construye T(s) = Km / (tau_m*s + 1), la planta motor sin controlador."""
-    num = [Km]
-    den = [tau_m, 1]
+    num = [(Km)*3]
+    den = [tau_m, 0.1]
     return signal.TransferFunction(num, den)
 
 
