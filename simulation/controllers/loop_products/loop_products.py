@@ -43,10 +43,12 @@ TIME_STEP = 16  # ms, igual al basicTimeStep del mundo
 DT = TIME_STEP / 1000.0  # s
 
 # Escala física: una unidad de la salida de T(s) equivale a esta velocidad de
-# banda (m/s). T(s) tiene ganancia DC alta (Km*3/0.1), así que se escala para
-# que el régimen permanente quede en ~0.25 m/s y la animación sea legible.
-_dc_gain = float(build_transfer_function().num[0] / build_transfer_function().den[-1])
-BELT_SPEED_PER_UNIT = 0.25 / _dc_gain
+# banda (m/s). La escala es FIJA y está calibrada con la ganancia de referencia
+# (Km=18 -> ganancia DC 540 -> 0.25 m/s en régimen). Así, si se cambia Km en
+# control/transfer_function.py, la velocidad final de la banda cambia de verdad
+# (lazo abierto: nadie la corrige).
+REFERENCE_DC_GAIN = 540.0
+BELT_SPEED_PER_UNIT = 0.25 / REFERENCE_DC_GAIN
 ROLLER_RADIUS = 0.15  # m, para girar rodillos y encoder según la velocidad
 
 BELT_START_X = -1.15
@@ -71,7 +73,7 @@ BELT_HALF_WIDTH = 0.25
 RESULT_HOLD_S = 2.0  # cuánto dura la señal verde/roja
 RESPAWN_DELAY_S = 2.5  # tiempo en el compartimento antes de reaparecer
 
-FAULT_EVERY_N = 4  # 0 = sin fallas
+FAULT_EVERY_N = 4  
 STATUS_PERIOD_S = 1.0
 
 LAMP_ON = {"G": [0.0, 1.0, 0.0], "R": [1.0, 0.0, 0.0]}
